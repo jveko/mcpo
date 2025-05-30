@@ -18,8 +18,10 @@ WORKDIR /app
 
 # Copy mise config and install tools
 COPY .mise.toml /app/
-RUN mise install && \
+RUN mise trust /app/.mise.toml && \
+    mise install && \
     mise reshim && \
+    eval "$(mise activate bash)" && \
     uv pip install --system mcpo
 
 # Copy app config
