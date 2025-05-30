@@ -1,31 +1,17 @@
-FROM debian:12-slim
-
-RUN apt-get update  \
-    && apt-get -y --no-install-recommends install  \
-        sudo curl git ca-certificates build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-ENV MISE_DATA_DIR="/mise"
-ENV MISE_CONFIG_DIR="/mise"
-ENV MISE_CACHE_DIR="/mise/cache"
-ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
-ENV PATH="/mise/shims:$PATH"
-
-RUN curl https://mise.run | sh
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy mise config and install tools
-COPY .mise.toml /app/
-RUN mise trust /app/.mise.toml && \
-    mise install && \
-    mise reshim && \
-    eval "$(mise activate bash)" && \
-    uv pip install --system mcpo
+# Install Node.js and uv
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    pip install uv && \
+    uv pip install --system mcpo && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy app config
 COPY config.json /app/config.json
-
 EXPOSE 8000
 CMD ["mcpo", "--host", "0.0.0.0", "--port", "8000", "--config", "/app/config.json"]
