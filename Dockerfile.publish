@@ -1,18 +1,29 @@
-FROM python:3.11-slim
+FROM debian:12-slim
+
+RUN apt-get update  \
+    && apt-get -y --no-install-recommends install  \
+        sudo curl git ca-certificates build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV MISE_DATA_DIR="/mise"
+ENV MISE_CONFIG_DIR="/mise"
+ENV MISE_CACHE_DIR="/mise/cache"
+ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
+ENV PATH="/mise/shims:$PATH"
+
+RUN curl https://mise.run | sh
 
 WORKDIR /app
 
-# Install Node.js from NodeSource (using bookworm instead of bullseye)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl gnupg && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x bookworm main" > /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends nodejs && \
-    pip install --no-cache-dir uv mcpo && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Copy mise config and install tools
+COPY .mise.toml /app/
+RUN mise install && \
+    mise reshim && \
+    uv pip install --system mcpo
 
+# Copy app config
 COPY config.json /app/config.json
+
 EXPOSE 8000
 CMD ["mcpo", "--host", "0.0.0.0", "--port", "8000", "--config", "/app/config.json"]
