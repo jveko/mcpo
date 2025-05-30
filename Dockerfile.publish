@@ -1,17 +1,18 @@
 FROM python:3.11-slim
 
-# Install Node.js 18 from NodeSource
+WORKDIR /app
+
+# Install Node.js from NodeSource (using bookworm instead of bullseye)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl gnupg && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x bullseye main" > /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x bookworm main" > /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends nodejs && \
     pip install --no-cache-dir uv mcpo && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-WORKDIR /app
 COPY config.json /app/config.json
 EXPOSE 8000
 CMD ["mcpo", "--host", "0.0.0.0", "--port", "8000", "--config", "/app/config.json"]
