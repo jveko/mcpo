@@ -26,6 +26,19 @@
         "-y",
         "@upstash/context7-mcp"
       ]
+    },
+    "ticktick": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@alexarevalo9/ticktick-mcp-server",
+        "--key",
+        "fc09a61f-f64e-4328-8ddd-c8bbe08eb397",
+        "--profile",
+        "worldwide-mink-0RNps0"
+      ]
     }
   }
 }
